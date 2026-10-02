@@ -911,6 +911,34 @@ const OPTS = ["R$ 1 mil a R$ 2 mil","R$ 2 mil a R$ 3 mil","R$ 3 mil a R$ 5 mil",
 let step = 0, opened = false, finishedTF = false, busy = false;
 let country = COUNTRIES.find(c => c.iso === detectCountry()) || COUNTRIES[0];
 
+  /* ===== País pelo IP (com plano B no fuso horário) ===== */
+let countryChosen = false; // vira true se a pessoa escolher o país manualmente
+
+async function detectCountryByIP(){
+  const KEY = "rc_ip_country";
+  try{ const saved = sessionStorage.getItem(KEY); if(saved) return saved; }catch(e){}
+  try{
+    const ctrl = new AbortController();
+    const t = setTimeout(()=> ctrl.abort(), 2500); // não trava a página se o serviço demorar
+    const r = await fetch("https://api.country.is/", {signal: ctrl.signal});
+    clearTimeout(t);
+    const j = await r.json();
+    const iso = ((j && j.country) || "").toUpperCase();
+    if(iso){ try{ sessionStorage.setItem(KEY, iso); }catch(e){} return iso; }
+  }catch(e){}
+  return "";
+}
+
+detectCountryByIP().then(iso=>{
+  if(!iso || countryChosen) return;
+  const found = COUNTRIES.find(c => c.iso === iso);
+  if(!found) return; // país fora da lista: mantém o do fuso horário
+  country = found;
+  const eur = ["PT","ES","IT","DE","FR","IE","BE","NL","LU"];
+  currency = iso === "US" ? "USD" : iso === "JP" ? "JPY" : eur.includes(iso) ? "EUR" : "BRL";
+  paintFx(); // atualiza também a moeda dos valores na página
+});
+
 function applyMask(digits, mask){
   let out = "", d = 0;
   for(const ch of mask){ if(d >= digits.length) break; out += ch === "0" ? digits[d++] : ch; }
@@ -1056,7 +1084,7 @@ function renderPhone(){
     COUNTRIES.filter(c => !n || c.name.toLowerCase().includes(n) || c.dial.startsWith(n) || c.iso.toLowerCase() === n).forEach(c=>{
       const li = document.createElement("li");
       li.innerHTML = `<button type="button" role="option"><span>${c.flag}</span><span>${c.name}</span><span class="code">${c.dial ? "+" + c.dial : ""}</span></button>`;
-      li.firstChild.addEventListener("click", ()=>{ country = c; paint(); closePop(); (c.iso === "XX" ? ddiIn : phone).focus(); });
+      li.firstChild.addEventListener("click", ()=>{ country = c; countryChosen = true; paint(); closePop(); (c.iso === "XX" ? ddiIn : phone).focus(); });
       list.appendChild(li);
     });
   }
