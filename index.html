@@ -547,6 +547,21 @@ h1{ max-width:21ch; font-size:clamp(31px, 7.8vw, 58px); }
 @media (min-width:980px){ .wrap{ grid-template-areas:"head head" "sub sub" "points form"; } }
 @media (max-width:420px){ .float-cta > svg{ display:none; } .float-cta{ gap:10px; } }
 </style>
+  <!-- Meta Pixel -->
+<script>
+!function(f,b,e,v,n,t,s)
+{if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+n.queue=[];t=b.createElement(e);t.async=!0;
+t.src=v;s=b.getElementsByTagName(e)[0];
+s.parentNode.insertBefore(t,s)}(window, document,'script',
+'https://connect.facebook.net/en_US/fbevents.js');
+fbq('init', '837741104784878');
+fbq('track', 'PageView');
+</script>
+<noscript><img height="1" width="1" style="display:none"
+src="https://www.facebook.com/tr?id=837741104784878&ev=PageView&noscript=1"/></noscript>
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><symbol id="rc-logo" viewBox="355 260 795 975"><g fill="currentColor"><path fill-rule="evenodd" d="M365 270H790A298 298 0 0 1 805 866L1140 1218V1225H1030L365 525ZM448 353V492L725 784H790A215.5 215.5 0 0 0 790 353Z"/><path d="M370 627L930 1225H817L370 748Z"/></g><path d="M374 866L708 1220H609L374 968Z" fill="none" stroke="currentColor" stroke-width="10"/></symbol></svg>
@@ -806,7 +821,7 @@ async function sendLead(etapa){
   });
   // GTM / Meta Pixel (quando instalados no domínio próprio)
   try{ (window.dataLayer = window.dataLayer || []).push({event: etapa, lead_id: lead.lead_id, investimento: lead.investimento_mensal, pais: lead.pais}); }catch(e){}
-  try{ if(typeof window.fbq === "function"){ window.fbq("track", etapa === "lead_completo" ? "CompleteRegistration" : "Lead", {content_name: CONFIG.ORIGEM}, {eventID: lead.lead_id + "-" + etapa}); } }catch(e){}
+  try{ if(typeof window.fbq === "function" && etapa === "lead_completo"){ window.fbq("track", "Lead", {content_name: CONFIG.ORIGEM}, {eventID: lead.lead_id}); } }catch(e){}
   if(etapa === "lead_completo") sendToLeadsWebhook(); // cadastro finalizado -> n8n (leadsLP)
   if(!CONFIG.WEBHOOK_URL){ console.info("[Lead – webhook não configurado]", payload); return; }
   try{
